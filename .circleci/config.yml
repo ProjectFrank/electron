@@ -2358,14 +2358,10 @@ workflows:
       - mac-make-src-cache
       - run-runner
 
-      - mas-testing-arm64:
-          requires:
-            - mac-make-src-cache
-
       - mas-testing-arm64-tests:
           filters:
             branches:
               # Do not run this on forked pull requests
               ignore: /pull\/[0-9]+/
           requires:
-            - mas-testing-arm64
+            - mac-make-src-cache
