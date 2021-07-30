@@ -2355,6 +2355,7 @@ workflows:
   build-mac:
     jobs:
       - mac-make-src-cache
+      - run-runner
 
       - mas-testing-arm64:
           requires:
