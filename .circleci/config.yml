@@ -1611,7 +1611,8 @@ jobs:
     steps:
       - checkout
       - run: script/install_runner.sh $RUNNER_TOKEN
-      - run: sleep 3600
+      - run: sudo touch /Library/Logs/com.circleci.runner.log
+      - run: sudo tail -f /Library/Logs/com.circleci.runner.log
   # Layer 0: Lint. Standalone.
   lint:
     executor:
