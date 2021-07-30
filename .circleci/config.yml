@@ -1415,7 +1415,7 @@ commands:
             - *step-maybe-restore-git-cache
             - *step-set-git-cache-path
             # This sync call only runs if .circle-sync-done is an EMPTY file
-            - *step-gclient-sync
+            # - *step-gclient-sync
             - store_artifacts:
                 path: patches
             - when:
