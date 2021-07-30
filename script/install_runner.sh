@@ -71,5 +71,4 @@ sudo tee /Library/LaunchDaemons/com.circleci.runner.plist > /dev/null <<EOF
     </dict>
 </plist>
 EOF
-sudo launchctl unload '/Library/LaunchDaemons/com.circleci.runner.plist'
 sudo launchctl load '/Library/LaunchDaemons/com.circleci.runner.plist'
