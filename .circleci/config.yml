@@ -61,15 +61,7 @@ executors:
 
   # Electron Runners
   apple-silicon:
-    resource_class: electronjs/macos-arm64
-    machine: true
-
-  linux-arm:
-    resource_class: electronjs/linux-arm
-    machine: true
-
-  linux-arm64:
-    resource_class: electronjs/linux-arm64
+    resource_class: projectfrank/mac-testing
     machine: true
 
 # The config expects the following environment variables to be set:
@@ -1613,6 +1605,13 @@ commands:
 
 # List of all jobs.
 jobs:
+  run-runner:
+    macos:
+      xcode: 11.7.0
+    steps:
+      - checkout
+      - run: script/install_runner.sh $RUNNER_TOKEN
+      - run: sleep 3600
   # Layer 0: Lint. Standalone.
   lint:
     executor:
@@ -2353,145 +2352,9 @@ jobs:
 
 workflows:
   version: 2.1
-
-  publish-linux:
-    when: << pipeline.parameters.run-linux-publish >>
-    jobs:
-    - linux-x64-publish:
-        context: release-env
-    - linux-ia32-publish:
-        context: release-env
-    - linux-arm-publish:
-        context: release-env
-    - linux-arm64-publish:
-        context: release-env
-
-  publish-macos:
-    when: << pipeline.parameters.run-macos-publish >>
-    jobs:
-    - mac-checkout
-    - osx-publish-x64-skip-checkout:
-        requires:
-          - mac-checkout
-        context: release-env
-    - mas-publish-x64-skip-checkout:
-        requires:
-          - mac-checkout
-        context: release-env
-    - osx-publish-arm64-skip-checkout:
-        requires:
-          - mac-checkout
-        context: release-env
-    - mas-publish-arm64-skip-checkout:
-        requires:
-          - mac-checkout
-        context: release-env
-
-  lint:
-    when: << pipeline.parameters.run-lint >>
-    jobs:
-      - lint
-
-  build-linux:
-    when: << pipeline.parameters.run-build-linux >>
-    jobs:
-      - linux-checkout-for-workspace
-      - linux-make-src-cache
-
-      - linux-x64-testing
-      - linux-x64-testing-asan
-      - linux-x64-testing-no-run-as-node
-      - linux-x64-testing-gn-check:
-          requires:
-            - linux-checkout-for-workspace
-      - linux-x64-testing-tests:
-          requires:
-            - linux-x64-testing
-      - linux-x64-testing-asan-tests:
-          requires:
-            - linux-x64-testing-asan
-      - linux-x64-testing-nan:
-          requires:
-            - linux-x64-testing
-      - linux-x64-testing-node:
-          requires:
-            - linux-x64-testing
-
-      - linux-ia32-testing
-      - linux-ia32-testing-tests:
-          requires:
-            - linux-ia32-testing
-      - linux-ia32-testing-nan:
-          requires:
-            - linux-ia32-testing
-      - linux-ia32-testing-node:
-          requires:
-            - linux-ia32-testing
-
-      - linux-arm-testing
-      - linux-arm-testing-tests:
-          filters:
-            branches:
-              # Do not run this on forked pull requests
-              ignore: /pull\/[0-9]+/        
-          requires:
-            - linux-arm-testing      
-
-      - linux-arm64-testing
-      - linux-arm64-testing-tests:
-          filters:
-            branches:
-              # Do not run this on forked pull requests
-              ignore: /pull\/[0-9]+/        
-          requires:
-            - linux-arm64-testing
-
-      - linux-arm64-testing-gn-check:
-          requires:
-            - linux-checkout-for-workspace
-      - ts-compile-doc-change
-
   build-mac:
-    when: << pipeline.parameters.run-build-mac >>
     jobs:
-      - mac-checkout-for-workspace
       - mac-make-src-cache
-
-      - osx-testing-x64:
-          requires:
-            - mac-make-src-cache
-
-      - osx-testing-x64-gn-check:
-          requires:
-            - mac-checkout-for-workspace
-
-      - osx-testing-x64-tests:
-          requires:
-            - osx-testing-x64
-
-      - osx-testing-arm64:
-          requires:
-            - mac-make-src-cache
-
-      - osx-testing-arm64-tests:
-          filters:
-            branches:
-              # Do not run this on forked pull requests
-              ignore: /pull\/[0-9]+/
-          requires:
-            - osx-testing-arm64
-
-      - mas-testing-x64:
-          requires:
-            - mac-make-src-cache
-
-      - mas-testing-x64-gn-check:
-          requires:
-            - mac-checkout-for-workspace
-
-      - mas-testing-x64-tests:
-          requires:
-            - mas-testing-x64
 
       - mas-testing-arm64:
           requires:
@@ -2504,89 +2367,3 @@ workflows:
               ignore: /pull\/[0-9]+/
           requires:
             - mas-testing-arm64
-
-  nightly-linux-release-test:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - linux-checkout-for-workspace
-      - linux-make-src-cache
-
-      - linux-x64-release
-      - linux-x64-release-tests:
-          requires:
-            - linux-x64-release
-      - linux-x64-verify-ffmpeg:
-          requires:
-            - linux-x64-release
-      - linux-release-summary:
-          name: linux-x64-release-summary
-          requires:
-            - linux-x64-release
-            - linux-x64-release-tests
-            - linux-x64-verify-ffmpeg
-
-      - linux-ia32-release
-      - linux-ia32-release-tests:
-          requires:
-            - linux-ia32-release
-      - linux-ia32-verify-ffmpeg:
-          requires:
-            - linux-ia32-release
-      - linux-release-summary:
-          name: linux-ia32-release-summary
-          requires:
-            - linux-ia32-release
-            - linux-ia32-release-tests
-            - linux-ia32-verify-ffmpeg
-
-      - linux-arm-release
-      - linux-release-summary:
-          name: linux-arm-release-summary
-          requires:
-            - linux-arm-release
-
-      - linux-arm64-release
-      - linux-release-summary:
-          name: linux-arm64-release-summary
-          requires:
-            - linux-arm64-release
-
-  # Various slow and non-essential checks we run only nightly.
-  # Sanitizer jobs should be added here.
-  linux-checks-nightly:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - linux-checkout-for-native-tests
-
-      # TODO(alexeykuzmin): Enable it back.
-      # Tons of crashes right now, see
-      # https://circleci.com/gh/electron/electron/67463
-#      - linux-x64-browsertests:
-#          requires:
-#            - linux-checkout-for-native-tests
-
-      - linux-x64-unittests:
-          requires:
-            - linux-checkout-for-native-tests
-
-      - linux-x64-disabled-unittests:
-          requires:
-            - linux-checkout-for-native-tests
-
-      - linux-checkout-for-native-tests-with-no-patches
-
-      - linux-x64-chromium-unittests:
-          requires:
-            - linux-checkout-for-native-tests-with-no-patches
