@@ -18,13 +18,14 @@ echo "Verifying CircleCI Launch Agent download"
 grep "$file" checksums.txt | shasum -a 256 --check && chmod +x "$file"; sudo cp "$file" "$prefix/circleci-launch-agent" || echo "Invalid checksum for CircleCI Launch Agent, please try download again"
 
 runner_token="${1}"
+user=$(whoami)
 
 cat > launch-agent-config.yaml <<EOF
 api:
     auth_token: $runner_token
 runner:
     name: bob
-    command_prefix: ["sudo", "-niHu", "distiller", "--"]
+    command_prefix: ["sudo", "-niHu", "$user", "--"]
     working_directory: /tmp/%s
     cleanup_working_directory: true
 logging:
