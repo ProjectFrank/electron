@@ -24,7 +24,7 @@ api:
     auth_token: $runner_token
 runner:
     name: bob
-    command_prefix: ["sudo", "-niHu", "administrator", "--"]
+    command_prefix: ["sudo", "-niHu", "distiller", "--"]
     working_directory: /tmp/%s
     cleanup_working_directory: true
 logging:
