@@ -61,7 +61,7 @@ executors:
 
   # Electron Runners
   apple-silicon:
-    resource_class: projectfrank/mac-testing
+    resource_class: projectfrank/mac-test
     machine: true
 
 # The config expects the following environment variables to be set:
