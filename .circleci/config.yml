@@ -1605,6 +1605,11 @@ commands:
 
 # List of all jobs.
 jobs:
+  whiskey:
+    resource_class: circleci-runner/whiskey
+    machine: true
+    steps:
+      - run: echo hi
   run-runner:
     macos:
       xcode: 11.7.0
@@ -2355,6 +2360,7 @@ workflows:
   version: 2.1
   build-mac:
     jobs:
+      - whiskey
       - mac-make-src-cache
       - run-runner
 
